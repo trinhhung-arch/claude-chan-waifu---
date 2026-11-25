@@ -148,6 +148,7 @@ CHAT_EMOTES = [e for e in EMOTES if e != DRAG_EMOTE]  # emote model được ch�
 POS_FILE = Path(__file__).parent / "vi_tri.txt"  # vị trí nhân vật sau lần kéo gần nhất
 LOG_FILE = Path(__file__).parent / "nhat_ky.txt"  # giờ, loại, emote, câu nói (chỉ chữ, không lưu ảnh)
 MEMORY_FILE = Path(__file__).parent / "ky_uc.txt"  # điều nhân vật nhớ về bạn, mỗi dòng một điều, sửa/xoá thoải mái
+HEART_IMG = Image.open(Path(__file__).parent / "tim_pixel.png").convert("RGBA")  # tim pixel bay ra khi được xoa đầu
 MEMORY_HEADER = "# Những điều nhân vật nhớ về bạn. Sửa hoặc xoá thoải mái, mỗi dòng một điều.\n"
 SECRET_WORDS = ["mật khẩu", "password", "otp", "số tài khoản", "số thẻ", "cvv"]  # không bao giờ ghi nhớ
 KEY = "#ff00fe"  # màu được Windows coi là trong suốt
@@ -649,19 +650,13 @@ def main():
 
     def glyph(ch, fill, size):
         """Ảnh ký hiệu (Z, ♥, !) chữ đậm viền nâu, mép cứng như emote (màu khoá chỉ trong suốt 0/1)."""
-        im = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
-        d, stroke = ImageDraw.Draw(im), max(2, size // 9)
-        if ch == "♥":  # chữ ♥ của font mà thêm viền thì tô kín cả ô vuông quanh nó: tự vẽ tim (2 hình tròn + tam giác)
-            r0, top0 = size * 0.45, size * 0.6
-            for p, color in ((stroke, "#5b3442"), (0, fill)):  # viền nâu to hơn vẽ trước, tim màu đè lên
-                r, top = r0 + p, top0 - p
-                d.ellipse((size - r, top, size, top + r), fill=color)
-                d.ellipse((size, top, size + r, top + r), fill=color)
-                d.polygon([(size - r, top + r * 0.55), (size + r, top + r * 0.55), (size, top + r * 1.6 + p * 0.6)], fill=color)
+        if ch == "♥":  # tim pixel do người dùng vẽ; NEAREST để ô pixel vẫn sắc khi thu nhỏ
+            im = HEART_IMG.resize((round(size * 1.2), round(size * 1.2 * HEART_IMG.height / HEART_IMG.width)), Image.NEAREST)
         else:
-            d.text((size, size), ch, font=ImageFont.truetype("arialbd.ttf", size), fill=fill, anchor="mm",
-                   stroke_width=stroke, stroke_fill="#5b3442")
-        im = im.crop(im.getbbox())
+            im = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
+            ImageDraw.Draw(im).text((size, size), ch, font=ImageFont.truetype("arialbd.ttf", size), fill=fill,
+                                    anchor="mm", stroke_width=max(2, size // 9), stroke_fill="#5b3442")
+            im = im.crop(im.getbbox())
         bg = Image.new("RGBA", im.size, KEY)
         bg.paste(im, mask=im.getchannel("A").point(lambda a: 255 if a >= 128 else 0))
         return ImageTk.PhotoImage(bg.convert("RGB"))
@@ -672,12 +667,28 @@ def main():
 
     def puff(kind, x, y, step=0, lab=None):
         """Một ký hiệu bay lên ~50px, lắc lư nhẹ, nhỏ dần rồi biến mất (~1.3 giây)."""
-        lab = lab or tk.Label(root, bg=KEY, bd=0)
-        t = step / 40
+        # Mỗi ký hiệu một cửa sổ trong suốt riêng đè lên nhân vật: đặt nhãn chung cửa sổ thì chỗ màu khoá quanh ký hiệu
+        # "đục thủng" luôn cả nhân vật, lộ màn hình phía sau thành ô vuông trắng/đen.
+        if lab is None:
+            win = tk.Toplevel(root)
+            win.withdraw()
+            win.overrideredirect(True)
+            win.attributes("-topmost", True)
+            win.attributes("-transparentcolor", KEY)
+            lab = tk.Label(win, bg=KEY, bd=0)
+            lab.pack()
+            win.update_idletasks()
+            u, h = ctypes.windll.user32, ctypes.c_void_p(int(win.wm_frame(), 16))
+            u.SetWindowLongW(h, -20, u.GetWindowLongW(h, -20) | 0x08000020)  # không cướp focus, chuột bấm xuyên qua
+        win, t = lab.winfo_toplevel(), step / 40
         if t >= 1 or hidden.is_set():
-            return lab.destroy()
-        lab.config(image=glyphs[kind][int(t * len(glyphs[kind]))])
-        lab.place(x=x + 6 * math.sin(t * 7), y=y - 50 * t, anchor="center")
+            return win.destroy()
+        img = glyphs[kind][int(t * len(glyphs[kind]))]
+        lab.config(image=img)
+        cx, cy = root.winfo_rootx() + x + 6 * math.sin(t * 7), root.winfo_rooty() + y - 50 * t
+        win.geometry(f"+{round(cx - img.width() / 2)}+{round(cy - img.height() / 2)}")
+        win.deiconify()
+        win.lift()  # nổi trên nhân vật kể cả khi nhân vật vừa tự giành lại "trên cùng"
         root.after(33, puff, kind, x, y, step + 1, lab)
 
     def burst(kind, n):
