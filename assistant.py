@@ -650,8 +650,17 @@ def main():
     def glyph(ch, fill, size):
         """Ảnh ký hiệu (Z, ♥, !) chữ đậm viền nâu, mép cứng như emote (màu khoá chỉ trong suốt 0/1)."""
         im = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
-        ImageDraw.Draw(im).text((size, size), ch, font=ImageFont.truetype("arialbd.ttf", size), fill=fill,
-                                anchor="mm", stroke_width=max(2, size // 9), stroke_fill="#5b3442")
+        d, stroke = ImageDraw.Draw(im), max(2, size // 9)
+        if ch == "♥":  # chữ ♥ của font mà thêm viền thì tô kín cả ô vuông quanh nó: tự vẽ tim (2 hình tròn + tam giác)
+            r0, top0 = size * 0.45, size * 0.6
+            for p, color in ((stroke, "#5b3442"), (0, fill)):  # viền nâu to hơn vẽ trước, tim màu đè lên
+                r, top = r0 + p, top0 - p
+                d.ellipse((size - r, top, size, top + r), fill=color)
+                d.ellipse((size, top, size + r, top + r), fill=color)
+                d.polygon([(size - r, top + r * 0.55), (size + r, top + r * 0.55), (size, top + r * 1.6 + p * 0.6)], fill=color)
+        else:
+            d.text((size, size), ch, font=ImageFont.truetype("arialbd.ttf", size), fill=fill, anchor="mm",
+                   stroke_width=stroke, stroke_fill="#5b3442")
         im = im.crop(im.getbbox())
         bg = Image.new("RGBA", im.size, KEY)
         bg.paste(im, mask=im.getchannel("A").point(lambda a: 255 if a >= 128 else 0))
