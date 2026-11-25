@@ -616,7 +616,16 @@ def main():
         bubble.place(relx=0.5, y=y, anchor="s")
         if hide_job[0]:
             root.after_cancel(hide_job[0])
-        hide_job[0] = root.after(BUBBLE_SECONDS * 1000 + len(line) * 28, bubble.place_forget)  # cộng thời gian gõ
+        hide_job[0] = root.after(BUBBLE_SECONDS * 1000 + len(line) * 28, done_talking)  # cộng thời gian gõ
+
+    def done_talking():
+        """Nói xong (bong bóng ẩn): về dáng bình thường mim_cuoi. Trạng thái kéo dài thì giữ nguyên:
+        đang ngủ (buon_ngu), đang tạm dừng (xau_ho che mắt), đang bị kéo (bi_keo)."""
+        bubble.place_forget()
+        if not (sleeping.is_set() or paused.is_set() or "prev" in drag) and cur["emote"] != "mim_cuoi":
+            cur["emote"] = "mim_cuoi"
+            look()
+            render()
 
     hop = [None]
 
