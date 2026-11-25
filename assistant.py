@@ -126,10 +126,9 @@ LINES = {
     "game": ["Chơi game hả? Cho mình xem với!", "Game gì đó? Thắng nha!", "Yay, giờ chơi game~"],
     "chat": ["Nhắn tin với ai đó~", "Ai nhắn đó? Hihi~", "Tám chuyện hả?"],
 }
-# Emote nào đang nghiêng/nhìn lệch về phía nào (khi chưa lật): lật ảnh cho mặt hướng về phía con trỏ chuột.
-# Emote nhìn thẳng không có ở đây thì không lật (lật chỉ làm kẹp tóc đổi bên).
-FACING = {"phan_khich": "left", "lap_lanh": "left", "buon": "left", "gian_doi": "left",
-          "soc": "right", "suy_tu": "right", "mim_cuoi": "right", "nhay_mat_ok": "right", "le_luoi": "right"}
+# Emote có con ngươi liếc hẳn sang một bên (ảnh gốc chưa lật): lật ảnh cho mắt nhìn về phía con trỏ chuột.
+# Chỉ tính theo con ngươi, không theo độ nghiêng đầu: emote mắt nhìn thẳng mà lật theo nghiêng đầu thì trông như nhìn ngược.
+FACING = {"soc": "right", "suy_tu": "right"}
 # Âm lịch tra bảng (Tết = mùng 1 tháng Giêng, Trung thu = rằm tháng Tám), tới 2030
 LUNAR = {"tet": ["2026-02-17", "2027-02-06", "2028-01-26", "2029-02-13", "2030-02-03"],
          "trung_thu": ["2026-09-25", "2027-09-15", "2028-10-03", "2029-09-22", "2030-09-12"]}
