@@ -5,13 +5,15 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-import assistant
 from datetime import date
 
-from assistant import (APP_EMOTES, APPS, CHAT_EMOTES, SYSTEM, EMOTE_GUIDE, EMOTES, FACING, IDLE_POSES, LINES, LUNAR, active_title,
-                       app_category, battery, birthday_from, changed, chat, fullscreen, greeting, idle_seconds,
-                       is_private, load_memory, log_line, name_from, online, parse, parse_facts, parse_focus, parse_reminder,
-                       remember, screenshot, special_day, to_jpeg)
+import memory
+from brain import SYSTEM, chat, parse, parse_facts, parse_focus, parse_reminder
+from config import (APP_EMOTES, APPS, CHAT_EMOTES, EMOTE_GUIDE, EMOTES, FACING, IDLE_POSES, LINES, LUNAR,
+                    MAX_MEMORY)
+from desktop import active_title, battery, changed, fullscreen, idle_seconds, is_private, online, screenshot, to_jpeg
+from dialogue import app_category, birthday_from, greeting, name_from, special_day
+from memory import load_memory, log_line, remember
 
 # nhờ nhắc việc: chỉ nhận số phút hợp lý (1 phút tới 24 giờ)
 assert parse_reminder('{"nhac_phut": 15, "nhac_viec": " uống   nước "}') == (15, "uống nước")
@@ -65,7 +67,7 @@ assert (pct is None or 0 <= pct <= 100) and isinstance(plugged, bool) and isinst
 print("máy này: pin", pct, "| cắm sạc", plugged, "| có mạng", online())
 
 tmp = Path(tempfile.mkdtemp())
-assistant.MEMORY_FILE = tmp / "ky_uc.txt"  # test không đụng ký ức thật của bạn
+memory.MEMORY_FILE = tmp / "ky_uc.txt"  # test không đụng ký ức thật của bạn
 
 # ký ức: thêm, bỏ trùng, bỏ bí mật, giữ MAX_MEMORY điều mới nhất, đọc lại chỗ người dùng tự sửa
 assert load_memory() == [] and remember([]) == []
@@ -73,12 +75,12 @@ assert remember(["Bạn tên Hùng", "Bạn tên Hùng", "Thích game thẻ bài
 assert remember(["Bạn tên Hùng"]) == []  # đã nhớ rồi
 assert remember(["Mật khẩu wifi là abc123", "STK 0123 4567 89", "Số điện thoại 0912.345.678", "Thứ 6 nộp bài"]) == ["Thứ 6 nộp bài"]
 assert load_memory() == ["Bạn tên Hùng", "Thích game thẻ bài", "Thứ 6 nộp bài"]
-assistant.MEMORY_FILE.write_text("# ghi chú\nBạn tên Hùng\n\nThích code Python\n", encoding="utf-8")  # người dùng tự sửa file
+memory.MEMORY_FILE.write_text("# ghi chú\nBạn tên Hùng\n\nThích code Python\n", encoding="utf-8")  # người dùng tự sửa file
 assert load_memory() == ["Bạn tên Hùng", "Thích code Python"]
 remember([f"điều {i}" for i in range(40)])
 mem = load_memory()
-assert len(mem) == assistant.MAX_MEMORY and mem[-1] == "điều 39" and "Bạn tên Hùng" not in mem  # quên điều cũ nhất
-assistant.MEMORY_FILE.write_text("Bạn tên Hùng\n", encoding="utf-8")
+assert len(mem) == MAX_MEMORY and mem[-1] == "điều 39" and "Bạn tên Hùng" not in mem  # quên điều cũ nhất
+memory.MEMORY_FILE.write_text("Bạn tên Hùng\n", encoding="utf-8")
 
 assert parse_facts('{"loi_noi": "ok", "emote": "soc", "ghi_nho": ["  Thích   mèo ", "", 5]}') == ["Thích mèo", "5"]
 assert parse_facts('{"ghi_nho": "không phải list"}') == [] and parse_facts("hỏng") == [] and parse_facts("[1]") == []
