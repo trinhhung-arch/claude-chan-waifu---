@@ -1,9 +1,10 @@
-"""Chọn câu nói: câu ngẫu nhiên, câu chào theo giờ, ngày đặc biệt, tên người dùng, nhận diện app."""
+"""Chọn câu nói: câu ngẫu nhiên theo tình huống, câu chào theo giờ, ngày đặc biệt, tên người dùng trong ký ức."""
 import random
 import re
 from datetime import date
 
-from config import APPS, LINES, LUNAR
+from ..core.config import LINES, LUNAR
+
 
 def name_from(memory):
     """Tên người dùng trong ký ức, vd "Người dùng tên Hùng" / "Mình tên là Hùng" -> "Hùng"; không có thì ""."""
@@ -52,16 +53,4 @@ def special_day(today, hour, memory, name=""):
         return pick("trung_thu", n=n), "lap_lanh"
     if 5 <= hour < 18 and today.weekday() in (0, 4):
         return pick("monday" if today.weekday() == 0 else "friday", n=n), "co_vu" if today.weekday() == 0 else "phan_khich"
-    return None
-
-
-def app_category(title, is_fullscreen=False):
-    """Loại app đang mở theo tiêu đề cửa sổ ("code" / "game" / "chat"), không nhận ra thì None.
-    Cửa sổ toàn màn hình mà không phải trình duyệt (video YouTube...) thì coi là đang chơi game."""
-    t = title.lower()
-    for cat, words in APPS.items():
-        if any(w in t for w in words):
-            return cat
-    if is_fullscreen and title and not any(b in t for b in ("chrome", "edge", "firefox", "opera", "brave", "cốc cốc")):
-        return "game"
     return None

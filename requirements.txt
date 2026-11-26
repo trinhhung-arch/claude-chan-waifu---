@@ -1,0 +1,13 @@
+# Thư viện Claude-chan cần (cài: py -m pip install -r requirements.txt)
+pillow
+numpy
+scipy
+mss
+ollama
+pystray
+# biết đang phát nhạc gì (nhún theo nhạc); thiếu thì app chỉ đoán qua cửa sổ Spotify
+winrt-runtime
+winrt-Windows.Media.Control
+winrt-Windows.Foundation
+# chỉ để tách nền ảnh emote mới (transparent.py)
+rembg

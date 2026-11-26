@@ -3,7 +3,7 @@ import re
 import sys
 import time
 
-from config import LOG_FILE, MAX_MEMORY, MEMORY_FILE, MEMORY_HEADER, SECRET_WORDS
+from ..core.config import LOG_FILE, MAX_MEMORY, MEMORY_FILE, MEMORY_HEADER, SECRET_WORDS
 
 def load_memory(path=None):
     """Đọc lại file mỗi lần dùng, để chỗ người dùng tự sửa/xoá trong file có tác dụng ngay."""
