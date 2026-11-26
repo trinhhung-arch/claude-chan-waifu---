@@ -5,7 +5,7 @@ from claude_chan.core.config import APP_EMOTES, BLINK, APPS, CHAT_EMOTES, EMOTE_
 
 # mọi câu trong LINES điền được tham số (bắt lỗi gõ nhầm {hh}...), câu chào nào cũng có chỗ cho tên
 for key, lines in LINES.items():
-    assert lines and all(isinstance(s.format(n=" Hùng", h=2, p=15, m=25, b=5, what="uống nước", name="a.txt", kind="txt"), str) for s in lines), key
+    assert lines and all(isinstance(s.format(n=" Hùng", h=2, p=15, m=25, b=5, what="uống nước", name="a.txt", kind="txt", food="phở"), str) for s in lines), key
 assert all("{n}" in s for k in ("morning", "noon", "afternoon", "evening", "late", "monday", "friday",
                                 "birthday", "tet", "trung_thu") for s in LINES[k])
 assert set(FACING) <= set(EMOTES) and set(FACING.values()) <= {"left", "right"}

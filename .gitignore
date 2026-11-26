@@ -7,3 +7,9 @@ cai_dat.json
 
 # File Python tự sinh
 __pycache__/
+
+# Thư mục dữ liệu cá nhân (ký ức, nhật ký, cài đặt, vị trí, log lỗi)
+du_lieu/
+
+# Script làm ảnh dùng một lần (chỉ để trên máy)
+tools/

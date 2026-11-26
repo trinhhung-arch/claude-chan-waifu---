@@ -6,7 +6,7 @@ import threading
 import time
 from collections import deque
 
-from ..core.config import ANSWER_MODEL, ANSWER_ON, CHAT_EMOTES, COMMENT_ON, GAME_INTERVAL, HANDS_OFF_SECONDS, HISTORY_TURNS, INTERVAL, MOCK, TITLE, tr
+from ..core.config import ANSWER_MODEL, ANSWER_ON, CHAT_EMOTES, COMMENT_ON, COMMENT_PROMPT, GAME_INTERVAL, HANDS_OFF_SECONDS, HISTORY_TURNS, INTERVAL, MOCK, TITLE, tr
 from ..desktop import active_title, fullscreen, idle_seconds
 from ..dialogue import pick
 from ..memory import remember
@@ -14,14 +14,14 @@ from ..vision import changed, is_private, screenshot, to_jpeg
 from ._api import make_client
 from ._client import chat
 from ._feed import taste
-from ._parse import quick_intent
+from ._parse import likes_from, quick_intent
 
 
 class Cancelled(Exception):
     """Lượt bình luận bị bỏ giữa chừng vì người dùng vừa hỏi."""
 
 
-def comment(prompt, jpeg, asks):
+def comment(prompt, jpeg, asks, history=()):
     """Nhờ model bình luận ảnh màn hình, nhưng có câu hỏi mới thì bỏ ngay: cắt kết nối (Ollama thấy client ngắt thì
     dừng viết, rảnh trả lời luôn), khỏi bắt người dùng chờ hết câu bình luận 20-50 giây mà sau đó cũng không hiện."""
     client, done = make_client(180), threading.Event()  # kết nối riêng cho lượt này, cắt được
@@ -34,7 +34,7 @@ def comment(prompt, jpeg, asks):
 
     threading.Thread(target=watch, daemon=True).start()
     try:
-        return chat(client, prompt, jpeg)[:2]  # bình luận màn hình: không học, không nhắc
+        return chat(client, prompt, jpeg, history)[:2]  # bình luận màn hình: không học, không nhắc
     except Exception:
         if not asks.empty():
             raise Cancelled from None
@@ -94,12 +94,14 @@ def worker(out, asks, state):
                     line, emote, facts = ((pick("no_model_ok"), "nhay_mat_ok", []) if remind or focus
                                           else (pick("no_model"), "buon", []))
                 else:
-                    line, emote, facts, remind, focus = chat(client, prompt, None, list(history), learn=not clip,
+                    line, emote, facts, remind, focus = chat(client, prompt, None, list(history), learn=not clip, about=text,
                                                              model=ANSWER_MODEL)
                 if clip and (MOCK or ANSWER_ON):  # giải thích / dịch đoạn vừa copy luôn là lúc giải thích: kính mọt sách
                     emote = "mot_sach"
                 history.extend([{"role": "user", "content": f"[đoạn vừa copy] {text[:300]}" if clip else text},
                                 {"role": "assistant", "content": line}])
+                if not clip:  # tự nói thích / ghét gì thì luôn nhớ, kể cả khi tắt AI hay model quên ghi
+                    facts = [*facts, *likes_from(text)]
                 remember(facts)  # nhớ lặng lẽ, không thêm "(Mình nhớ rồi nha!)" vào câu trả lời
                 at = lambda minutes: time.strftime('%H:%M', time.localtime(time.time() + minutes * 60))
                 if focus:  # phiên làm việc: app canh giờ + nhắc nghỉ, không cần thêm lời nhắc trùng
@@ -137,10 +139,11 @@ def worker(out, asks, state):
                         if MOCK:
                             line, emote = f"(thử) Ảnh màn hình {len(jpeg) // 1024}KB, mình thấy rồi nha!", random.choice(CHAT_EMOTES)
                         else:
-                            prompt = "Người dùng đang làm gì trên màn hình? Nói một câu với họ và chọn emote hợp cảm xúc."
+                            prompt = COMMENT_PROMPT
                             if recent:
-                                prompt += " Những câu bạn vừa nói (đừng lặp lại): " + " | ".join(recent)
-                            line, emote = comment(prompt, jpeg, asks)
+                                prompt += (" Mấy câu bạn vừa nói: " + " | ".join(recent)  # lần này phải nói ý khác hẳn, không lặp
+                                           + ". Lần này nói ý KHÁC hẳn (chuyện khác, kiểu câu khác), đừng lặp lại.")
+                            line, emote = comment(prompt, jpeg, asks, list(history))  # nhớ chuyện vừa nói
                         last = img  # chỉ nhớ khi gửi thành công, lỗi thì lượt sau gửi lại
                         recent.append(line)
                         out.put((line, emote))

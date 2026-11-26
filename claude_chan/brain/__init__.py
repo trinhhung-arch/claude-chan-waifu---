@@ -3,6 +3,6 @@ from ._api import ApiClient, make_client
 from ._client import SYSTEM, chat
 from ._feed import taste
 from ._loop import start
-from ._parse import parse, parse_explaining, parse_facts, parse_focus, parse_reminder, quick_intent
+from ._parse import fix_pronouns, likes_from, parse, parse_explaining, parse_facts, parse_focus, parse_reminder, quick_intent
 
-__all__ = ["ApiClient", "make_client", "SYSTEM", "chat", "start", "parse", "parse_explaining", "parse_facts", "parse_focus", "parse_reminder", "quick_intent", "taste"]
+__all__ = ["ApiClient", "make_client", "SYSTEM", "chat", "start", "parse", "parse_explaining", "parse_facts", "parse_focus", "parse_reminder", "quick_intent", "taste", "likes_from", "fix_pronouns"]

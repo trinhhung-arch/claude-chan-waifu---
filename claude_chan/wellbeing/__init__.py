@@ -6,7 +6,7 @@ from datetime import date
 from ..core.config import AWAY_MINUTES, LOW_BATTERY, NIGHT_HOURS, TIRED_HOURS, YAWN_EMOTE
 from ..desktop import battery, fullscreen, idle_seconds, online
 from ..dialogue import greeting, name_from, pick, special_day
-from ..memory import load_memory
+from ..memory import favorite_food, load_memory
 
 
 class Wellbeing:
@@ -16,6 +16,7 @@ class Wellbeing:
         self.char, self.state = char, state
         self.rest = {"start": time.time(), "next_tired": TIRED_HOURS * 3600, "night": None, "greeted": None}
         self.power = {"low": False, "online": True}
+        self.lunch = None  # ngày đã rủ ăn trưa
 
     def start(self):
         self.greet()
@@ -79,4 +80,19 @@ class Wellbeing:
         if net != power["online"] and not char.asking:
             power["online"] = net
             char.say(*((pick("net_back"), "lap_lanh") if net else (pick("net_lost"), "buon")))
+        self.check_lunch()
         char.root.after(30000, self.check_system)
+
+    def check_lunch(self):
+        """11h-13h30, biết món bạn thích: rủ đi ăn món đó, mỗi ngày một lần, lúc đang rảnh (không nói / hỏi / ngủ)."""
+        char, now, today = self.char, time.localtime(), date.today()
+        if self.lunch == today or not (11 * 60 <= now.tm_hour * 60 + now.tm_min <= 13 * 60 + 30):
+            return
+        if char.talking or char.asking or char.thinking or char.playing or self.state.sleeping.is_set():
+            return
+        memory = load_memory()
+        food = favorite_food(memory)
+        self.lunch = today
+        if food:
+            name = name_from(memory)
+            char.say(pick("lunch", food=food[0], n=f" {name}" if name else ""), "lap_lanh")
