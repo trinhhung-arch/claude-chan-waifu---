@@ -203,10 +203,10 @@ CRAWL_EMOTE = "bo"  # dáng bò 4 chân mặt :3 lúc chơi giành đồ ăn: lo
 CHAT_EMOTES = [e for e in EMOTES if e not in (DRAG_EMOTE, THINK_EMOTE, DIZZY_EMOTE, YAWN_EMOTE, PET_EMOTE, PUFF_EMOTE, CRAWL_EMOTE,
                                               *BLINK.values())]
 # ^ emote model được chọn khi nói
-DATA_DIR = ROOT / "du_lieu"  # dữ liệu riêng của người dùng trên máy này (không đưa lên GitHub, xem .gitignore)
-POS_FILE = DATA_DIR / "vi_tri.txt"  # vị trí nhân vật sau lần kéo gần nhất
+DATA_DIR = ROOT / "data"  # dữ liệu riêng của người dùng trên máy này (KHÔNG đưa lên GitHub, xem .gitignore)
+POS_FILE = DATA_DIR / "position.txt"  # vị trí nhân vật sau lần kéo gần nhất
 LOG_FILE = DATA_DIR / "nhat_ky.txt"  # giờ, loại, emote, câu nói (chỉ chữ, không lưu ảnh)
-MEMORY_FILE = DATA_DIR / "ky_uc.txt"  # điều nhân vật nhớ về bạn, mỗi dòng một điều, sửa/xoá thoải mái
+MEMORY_FILE = DATA_DIR / "memory.txt"  # điều nhân vật nhớ về bạn, mỗi dòng một điều, sửa/xoá thoải mái
 ERROR_LOG = DATA_DIR / "assistant.log"  # lỗi khi chạy bằng pythonw (không có console)
 MEMORY_HEADER = "# Những điều nhân vật nhớ về bạn. Sửa hoặc xoá thoải mái, mỗi dòng một điều.\n"
 SECRET_WORDS = ["mật khẩu", "password", "otp", "số tài khoản", "số thẻ", "cvv"]  # không bao giờ ghi nhớ
@@ -224,12 +224,15 @@ OPEN_FLAG = Path(tempfile.gettempdir()) / "claude_chan_mo_cua_so"
 SETTINGS_FILE = DATA_DIR / "cai_dat.json"
 
 DATA_DIR.mkdir(exist_ok=True)
-for _f in (POS_FILE, LOG_FILE, MEMORY_FILE, ERROR_LOG, SETTINGS_FILE):  # bản cũ để ở thư mục gốc: chuyển vào du_lieu/
-    if (ROOT / _f.name).exists() and not _f.exists():
-        try:
-            (ROOT / _f.name).replace(_f)
-        except OSError:  # đang bị bản app cũ giữ (log): để lần sau chuyển
-            pass
+# bản cũ (thư mục gốc, hoặc du_lieu/ với tên tiếng Việt): chuyển vào data/
+for _new, _old in ((POS_FILE, "vi_tri.txt"), (LOG_FILE, "nhat_ky.txt"), (MEMORY_FILE, "ky_uc.txt"),
+                   (ERROR_LOG, "assistant.log"), (SETTINGS_FILE, "cai_dat.json")):
+    for _src in (ROOT / _old, ROOT / "du_lieu" / _old):
+        if _src.exists() and not _new.exists():
+            try:
+                _src.replace(_new)
+            except OSError:  # đang bị bản app cũ giữ (log): để lần sau chuyển
+                pass
 # (tên hằng số, nhãn, nhóm, kiểu, nhỏ nhất, lớn nhất). Kiểu: "text", "int", "pct" (lưu 0-1, hiện %), "bool",
 # "choice" (nhỏ nhất = các giá trị được chọn), "secret" (chữ được để trống, lưu file thì mã hoá)
 PROVIDERS = {"ollama": "Ollama (máy này hoặc máy khác)", "api": "API trên mạng (OpenAI, Gemini, OpenRouter...)"}
