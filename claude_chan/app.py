@@ -10,7 +10,7 @@ from pathlib import Path
 from . import behaviors, brain, settings, tray
 from .character import Character
 from .core import State
-from .core.config import APP_ID, CLIP_MAX, MEMORY_FILE, MEMORY_HEADER, MOCK, OPEN_FLAG, ROOT, tr
+from .core.config import APP_ID, CLIP_MAX, ERROR_LOG, MEMORY_FILE, MEMORY_HEADER, MOCK, OPEN_FLAG, ROOT, tr
 from .desktop import accept_drops
 from .dialogue import pick
 from .focus import Focus
@@ -26,7 +26,7 @@ def main():
     ctypes.windll.winmm.timeBeginPeriod(1)
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)  # cửa sổ Claude-chan ở taskbar mang icon riêng
     if sys.stderr is None:  # chạy bằng pythonw (tự khởi động) không có console: ghi lỗi ra file, mỗi lần chạy ghi đè
-        sys.stderr = open(ROOT / "assistant.log", "w", encoding="utf-8")
+        sys.stderr = open(ERROR_LOG, "w", encoding="utf-8")
     state = State()  # trạng thái chung, luồng nói chuyện với model cũng đọc
     char = Character(state)
     root = char.root

@@ -1,6 +1,7 @@
 """Hành vi tự phát: phản ứng khi chuyển sang code / game / chat, rảnh lâu thì tự đổi dáng / đi dạo / trốn ra rìa
 ló đầu, cổ vũ khi thấy gõ phím hăng say. start(char, state) rồi để nó tự chạy."""
 import random
+import re
 import threading
 import time
 from collections import deque
@@ -10,10 +11,11 @@ from ..core.config import (APP_COOLDOWN_MINUTES, APP_EMOTES, APP_QUIET_SECONDS, 
                            YAWN_EMOTE, MUSIC_APPS, MUSIC_ON, MUSIC_WORDS, SIZE)
 from ..desktop import active_title, clipboard_image, clipboard_image_seq, fullscreen, idle_seconds, now_playing, screenshot_keys
 from ..dialogue import pick
+from ..memory import likes, load_memory
 from ..vision import grab_screen, is_private, locate
 from ._apps import app_category
 
-__all__ = ["app_category", "is_music", "on_youtube", "song_name", "start"]
+__all__ = ["app_category", "is_favorite", "is_music", "on_youtube", "song_name", "start"]
 
 
 SNAP_WAIT = 15  # bấm chụp màn hình mà chừng này giây chưa có ảnh nào (hủy) thì dỗi "không chụp mình à"
@@ -31,6 +33,17 @@ def is_music(playing):
 def on_youtube(title):
     """Cửa sổ đang mở là tab YouTube (tiêu đề trình duyệt kết thúc bằng "- YouTube", hoặc YouTube Music)."""
     return "youtube" in title.lower()
+
+
+def is_favorite(title, liked):
+    """Bài đang phát có phải bài người dùng thích (trong ký ức) không: "Thích bài hát Letter From Ajax" khớp tiêu đề
+    "Letter From Ajax (Official MV)". Bỏ chữ "bài hát / nghe" đầu, tên quá ngắn (< 4 ký tự) thì bỏ qua cho khỏi khớp bừa."""
+    low = title.lower()
+    for thing in liked:
+        song = re.sub(r"^(nghe\s+)?(bài hát|bài|ca khúc|song|the song)\s+", "", thing, flags=re.IGNORECASE).strip(" '\"")
+        if len(song) >= 4 and song.lower() in low:
+            return True
+    return False
 
 
 def song_name(title):
@@ -155,7 +168,12 @@ def start(char, state):
         """Đang nghe nhạc mà rảnh: đổi bài thì nhắc tên bài (15 phút tối đa một lần), còn lại cứ 1-2 phút nhún một đợt."""
         playing, now = music["playing"], time.time()
         if MUSIC_ON and is_music(playing) and not char.dancing and calm(10):
-            if playing[0] != music["title"] and now - music["mentioned"] > 15 * 60:
+            fav = playing[0] != music["title"] and is_favorite(playing[0], likes(load_memory()))
+            if fav:  # bài bạn thích: reo lên ngay, không cần chờ 15 phút
+                music.update(title=playing[0], mentioned=now, danced=now)
+                char.say(pick("music_fav", what=song_name(playing[0])), "phan_khich")
+                char.burst("heart", 3)
+            elif playing[0] != music["title"] and now - music["mentioned"] > 15 * 60:
                 music.update(title=playing[0], mentioned=now, danced=now)
                 char.say(pick("music", what=song_name(playing[0])), "lap_lanh")
             elif now - music["danced"] > music["gap"] and on_youtube(active_title()):  # chỉ nhảy khi đang xem YouTube

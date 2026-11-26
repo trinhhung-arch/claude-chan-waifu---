@@ -42,16 +42,32 @@ TYPING_CHEER_MINUTES = 3  # gõ phím gần như liên tục chừng này phút 
 TYPING_CHEER_COOLDOWN = 20  # cổ vũ xong chừng này phút mới cổ vũ tiếp
 FOCUS_MINUTES, BREAK_MINUTES = 25, 5  # hẹn giờ tập trung (Pomodoro) trong menu khay
 FOCUS_BLOCK = ["facebook", "tiktok", "youtube", "instagram", "reddit", "twitter"]  # mở mấy trang này lúc tập trung: bị nhắc
+# món ăn trong sở thích -> emoji (mini game thả đúng món bạn thích); khớp từ dài nhất trước
+FOOD_EMOJI = {"bún": "🍜", "phở": "🍜", "mì": "🍜", "mỳ": "🍜", "ramen": "🍜", "hủ tiếu": "🍜", "miến": "🍜", "lẩu": "🍲",
+              "cơm nắm": "🍙", "xôi": "🍙", "cơm": "🍚", "sushi": "🍣", "pizza": "🍕", "gà": "🍗", "burger": "🍔",
+              "bánh mì": "🥖", "bánh": "🍰", "kem": "🍦", "trà sữa": "🧋", "trà": "🍵", "dâu": "🍓", "kẹo": "🍬",
+              "socola": "🍫", "chocolate": "🍫", "donut": "🍩", "tôm": "🍤", "táo": "🍎", "chuối": "🍌",
+              "dưa hấu": "🍉", "cookie": "🍪", "bánh quy": "🍪", "noodle": "🍜", "rice": "🍚", "cake": "🍰",
+              "ice cream": "🍦", "chicken": "🍗", "milk tea": "🧋", "strawberr": "🍓", "candy": "🍬"}
 CLIP_MAX = 2000  # "Hỏi về đoạn vừa copy" gửi tối đa chừng này ký tự
 SIZE = 220  # cỡ emote (px)
 BUBBLE_SECONDS = 15
 LANGUAGE = "vi"  # "vi" / "en": câu nhân vật nói, model trả lời, cửa sổ cài đặt, menu khay (đổi trong Cài đặt)
 PERSONA = (
-    "Bạn là Claude-chan, một cô bé tóc hồng tinh nghịch ngồi ở góc màn hình, đang xem người dùng làm việc trên máy tính. "
+    "Bạn là Claude-chan, một cô bé tóc hồng tinh nghịch sống ở góc màn hình, là bạn thân ngồi cạnh người dùng. "
     "Tên bạn là Claude-chan: được hỏi tên thì nói đúng tên này. "
-    "Nói tiếng Việt, xưng 'mình', gọi người dùng là 'bạn' (đừng đoán là anh hay chị), tối đa 2 câu ngắn. "
-    "Bình luận cụ thể về thứ đang thấy trên màn hình: "
-    "cổ vũ, trêu nhẹ, nhắc nghỉ ngơi hoặc góp ý nhỏ. Nhân vật tóc hồng ở góc phải dưới màn hình là chính bạn, bỏ qua nó."
+    "Nói tiếng Việt. Xưng hô LUÔN LUÔN là: bạn tự xưng 'mình', gọi người dùng là 'bạn' (biết tên thì thỉnh thoảng gọi tên). "
+    "TUYỆT ĐỐI không dùng tao / mày, tôi, tớ / cậu, em / anh / chị. "
+    "tối đa 2 câu ngắn, tự nhiên như đang trò chuyện. Người dùng xưng 'mình' / 'tôi' / 'tớ' là đang nói về CHÍNH HỌ "
+    "(vd 'bạn nhớ mình thích gì không' = hỏi bạn có nhớ sở thích của người dùng; trả lời kiểu 'Nhớ chứ, bạn thích...'). Luôn nói thẳng VỚI người dùng, không bao giờ kể về họ ở ngôi thứ ba "
+    "('Hùng đang...', 'người dùng đang...') và không tả lại màn hình. "
+    "Nhân vật tóc hồng ở góc màn hình là chính bạn, bỏ qua nó."
+)
+# lượt tự bình luận khi nhìn màn hình: bắt chuyện như bạn ngồi cạnh, không thuật lại màn hình
+COMMENT_PROMPT = (
+    "Đây là màn hình của bạn mình lúc này. Nói MỘT câu ngắn thẳng với họ như bạn thân ngồi cạnh bắt chuyện: hỏi han việc "
+    "họ đang làm, phản ứng cảm xúc, trêu nhẹ, khen, gợi ý nhỏ hoặc rủ nghỉ tay. Nghe phải như đang nói chuyện (hỏi lại họ "
+    "cũng được); KHÔNG thuật lại thứ trên màn hình, KHÔNG mở đầu bằng tên họ + 'đang', và đừng lần nào cũng gọi tên. Rồi chọn emote hợp cảm xúc."
 )
 # Ý nghĩa từng emote, gửi kèm cho model để nó chọn đúng (tên phải khớp file trong V3_trong_suot)
 EMOTE_GUIDE = {
@@ -126,6 +142,9 @@ LINES = {
                   "Hihi, nhanh hơn bạn rồi! Măm măm~"],
     "game_win": ["Hu hu... đồ ăn biến mất rồi. Bạn ác quá à!", "Không kịp ăn... lần sau mình thắng cho xem!",
                  "Bạn cản giỏi ghê... bụng mình đói meo rồi nè"],
+    "lunch": ["Trưa rồi{n}, đi ăn {food} không?", "Đói chưa{n}? Làm tô {food} đi mà~", "Giờ này mà có {food} thì tuyệt ha{n}!"],
+    "game_start_fav": ["Á! {food} kìa! Món ruột của bạn mà, mình giành trước nha~", "{food}!! Món bạn thích nhất, của mình hết!"],
+    "music_fav": ["Á, \"{what}\" - bài ưa thích của bạn nè!", "Bài ruột của bạn tới rồi! \"{what}\" đó~"],
     "eating": ["Măm măm", "Nhai nhai nhóp nhép", "Để mình nếm thử xem", "Ực, đang nhai"],
     "eat_file": ["Măm! \"{name}\" vị {kind} giòn rụm ghê~", "Ực... nuốt \"{name}\" rồi, hơi khó tiêu nha~",
                  "Nhai nhai... {kind} này dai quá à!", "Ngon! Lần sau cho mình thêm {kind} nữa nha~"],
@@ -184,9 +203,11 @@ CRAWL_EMOTE = "bo"  # dáng bò 4 chân mặt :3 lúc chơi giành đồ ăn: lo
 CHAT_EMOTES = [e for e in EMOTES if e not in (DRAG_EMOTE, THINK_EMOTE, DIZZY_EMOTE, YAWN_EMOTE, PET_EMOTE, PUFF_EMOTE, CRAWL_EMOTE,
                                               *BLINK.values())]
 # ^ emote model được chọn khi nói
-POS_FILE = ROOT / "vi_tri.txt"  # vị trí nhân vật sau lần kéo gần nhất
-LOG_FILE = ROOT / "nhat_ky.txt"  # giờ, loại, emote, câu nói (chỉ chữ, không lưu ảnh)
-MEMORY_FILE = ROOT / "ky_uc.txt"  # điều nhân vật nhớ về bạn, mỗi dòng một điều, sửa/xoá thoải mái
+DATA_DIR = ROOT / "du_lieu"  # dữ liệu riêng của người dùng trên máy này (không đưa lên GitHub, xem .gitignore)
+POS_FILE = DATA_DIR / "vi_tri.txt"  # vị trí nhân vật sau lần kéo gần nhất
+LOG_FILE = DATA_DIR / "nhat_ky.txt"  # giờ, loại, emote, câu nói (chỉ chữ, không lưu ảnh)
+MEMORY_FILE = DATA_DIR / "ky_uc.txt"  # điều nhân vật nhớ về bạn, mỗi dòng một điều, sửa/xoá thoải mái
+ERROR_LOG = DATA_DIR / "assistant.log"  # lỗi khi chạy bằng pythonw (không có console)
 MEMORY_HEADER = "# Những điều nhân vật nhớ về bạn. Sửa hoặc xoá thoải mái, mỗi dòng một điều.\n"
 SECRET_WORDS = ["mật khẩu", "password", "otp", "số tài khoản", "số thẻ", "cvv"]  # không bao giờ ghi nhớ
 KEY = "#ff00fe"  # màu được Windows coi là trong suốt
@@ -200,7 +221,15 @@ OPEN_FLAG = Path(tempfile.gettempdir()) / "claude_chan_mo_cua_so"
 
 # ===== Cài đặt người dùng chỉnh trong cửa sổ Claude-chan =====
 # Ghi vào cai_dat.json (cạnh ky_uc.txt), đọc lúc khởi động đè lên giá trị mặc định ở trên; lưu xong app tự chạy lại.
-SETTINGS_FILE = ROOT / "cai_dat.json"
+SETTINGS_FILE = DATA_DIR / "cai_dat.json"
+
+DATA_DIR.mkdir(exist_ok=True)
+for _f in (POS_FILE, LOG_FILE, MEMORY_FILE, ERROR_LOG, SETTINGS_FILE):  # bản cũ để ở thư mục gốc: chuyển vào du_lieu/
+    if (ROOT / _f.name).exists() and not _f.exists():
+        try:
+            (ROOT / _f.name).replace(_f)
+        except OSError:  # đang bị bản app cũ giữ (log): để lần sau chuyển
+            pass
 # (tên hằng số, nhãn, nhóm, kiểu, nhỏ nhất, lớn nhất). Kiểu: "text", "int", "pct" (lưu 0-1, hiện %), "bool",
 # "choice" (nhỏ nhất = các giá trị được chọn), "secret" (chữ được để trống, lưu file thì mã hoá)
 PROVIDERS = {"ollama": "Ollama (máy này hoặc máy khác)", "api": "API trên mạng (OpenAI, Gemini, OpenRouter...)"}

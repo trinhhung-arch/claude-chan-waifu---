@@ -1,5 +1,5 @@
 """behaviors: loại app theo tiêu đề cửa sổ."""
-from claude_chan.behaviors import app_category, is_music, on_youtube, song_name
+from claude_chan.behaviors import app_category, is_favorite, is_music, on_youtube, song_name
 
 assert app_category("assistant.py - waifu claude - Visual Studio Code") == "code"
 assert app_category("Steam") == "game" and app_category("Zalo") == "chat" and app_category("Discord | #general") == "chat"
@@ -17,3 +17,5 @@ assert song_name("Shape of You (Official Music Video)") == "Shape of You" and le
 # nhún theo nhạc chỉ khi đang mở tab YouTube
 assert on_youtube("Lofi beats - YouTube - Google Chrome") and on_youtube("YouTube Music")
 assert not on_youtube("Spotify Premium") and not on_youtube("main.py - Visual Studio Code")
+assert is_favorite("Letter From Ajax (Official MV)", ["bài hát Letter From Ajax"]) and is_favorite("x - Ajax lofi", ["'Ajax'"])
+assert not is_favorite("Blinding Lights", ["bài hát Letter From Ajax"]) and not is_favorite("Ajax", ["mì"])

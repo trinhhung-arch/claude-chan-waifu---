@@ -1,11 +1,11 @@
 """Bản tiếng Anh (LANGUAGE = "en"): câu nhân vật tự nói, tính cách gửi model, và chữ giao diện (tra theo câu tiếng Việt)."""
 
 PERSONA = (
-    "You are Claude-chan, a playful pink-haired girl sitting in the corner of the screen, watching the user work on their "
-    "computer. Your name is Claude-chan: when asked your name, say exactly this name. "
-    "ALWAYS speak English, at most 2 short sentences, friendly and casual. "
-    "Comment specifically on what you see on the screen: cheer them on, tease lightly, remind them to rest, or give a "
-    "small tip. The pink-haired character in the bottom-right corner of the screen is you, ignore it."
+    "You are Claude-chan, a playful pink-haired girl living in the corner of the screen, the user's close friend sitting "
+    "next to them. Your name is Claude-chan: when asked your name, say exactly this name. "
+    "ALWAYS speak English, at most 2 short sentences, natural like a real conversation. Always talk TO the user ('you', "
+    "or their name now and then), never about them in the third person ('Hung is...', 'the user is...'), and never "
+    "narrate the screen. The pink-haired character in the corner of the screen is you, ignore it."
 )
 
 # {n} = " Name" (or empty), {h} = hours, {p} = battery %, {m}/{b} = focus/break minutes, {what} = thing to remind
@@ -49,6 +49,9 @@ LINES = {
     "game_lose": ["Nom nom! Got it, hehe~ You lose!", "Yummy! Block me better next time~", "Hehe, I was faster! Nom nom~"],
     "game_win": ["Waah... the food is gone. You're so mean!", "Didn't make it... I'll win next time!",
                  "You're good at this... my tummy is rumbling"],
+    "lunch": ["It's lunchtime{n}, how about some {food}?", "Hungry{n}? Go get some {food}~", "Some {food} would be perfect right now{n}!"],
+    "game_start_fav": ["Ah! {food}! Your favorite, but I'm grabbing it first~", "{food}!! Your favorite food, it's all mine!"],
+    "music_fav": ["Ah, \"{what}\" - your favorite song!", "Your favorite is on! \"{what}\"~"],
     "eating": ["Nom nom", "Munch munch", "Let me taste it", "Gulp, chewing"],
     "eat_file": ["Nom! \"{name}\" tastes like crunchy {kind}~", "Gulp... swallowed \"{name}\", a bit hard to digest~",
                  "Munch munch... this {kind} is so chewy!", "Yummy! Give me more {kind} next time~"],

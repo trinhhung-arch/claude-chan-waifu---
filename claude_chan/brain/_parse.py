@@ -2,7 +2,7 @@
 import json
 import re
 
-from ..core.config import CHAT_EMOTES, EMOTES, tr
+from ..core.config import CHAT_EMOTES, EMOTES, LANGUAGE, tr
 
 # tên emote lọt vào lời nói (":co_vu:", "(co_vu)", "[emote: soc]", "co_vu" đứng trơ...) và mã kiểu ":abc_xyz:": model
 # thỉnh thoảng viết cả tên emote vào câu, bong bóng hiện nguyên chữ đó. Tên một chữ không gạch dưới (buon, soc) chỉ bỏ
@@ -18,10 +18,47 @@ _EMOTE_TAG = re.compile(
     re.IGNORECASE)
 
 
+# xưng hô lệch của model (nhật ký từng có "tôi", "tớ", "em thấy", "mình thấy mày..."): Claude-chan luôn "mình" - "bạn"
+_PRONOUNS = [(re.compile(r"\b(tao|tớ|tôi)\b", re.IGNORECASE), "mình"),
+             (re.compile(r"\b(mày|cậu)\b", re.IGNORECASE), "bạn"),
+             (re.compile(r"\bem(?= (thấy|nghĩ|cũng|là|sẽ|muốn|nhớ|biết|hiểu|tin|đang|vừa|thích)\b)", re.IGNORECASE), "mình")]
+
+
+def fix_pronouns(line):
+    """Đổi cách xưng hô lệch về "mình" (Claude-chan) và "bạn" (người dùng), giữ chữ hoa đầu câu."""
+    for pattern, word in _PRONOUNS:
+        line = pattern.sub(lambda m: word.capitalize() if m.group(0)[0].isupper() else word, line)
+    return line
+
+
 def clean(line):
-    """Bỏ tên emote / mã emoji khỏi lời nói, gộp khoảng trắng thừa, bỏ dấu cách đứng trước dấu câu."""
+    """Bỏ tên emote / mã emoji khỏi lời nói, gộp khoảng trắng thừa, bỏ dấu cách đứng trước dấu câu; tiếng Việt thì sửa
+    luôn xưng hô cho đúng "mình" - "bạn"."""
     line = " ".join(_EMOTE_TAG.sub(" ", line).split())
-    return re.sub(r"\s+([.,!?~])", r"\1", line)
+    line = re.sub(r"\s+([.,!?~])", r"\1", line)
+    return fix_pronouns(line) if LANGUAGE == "vi" else line
+
+
+LIKE_VI = re.compile(r"\b(?:mình|tôi|tớ|tui|em)\s+(?:rất\s+|cực\s+|siêu\s+|cực kỳ\s+)?(không thích|thích|mê|ghiền|yêu"
+                     r"|ghét)\s+([^.!?,;\n]+)", re.IGNORECASE)
+LIKE_EN = re.compile(r"\bI\s+(?:really\s+|totally\s+)?(don't like|do not like|like|love|enjoy|adore|hate)\s+([^.!?,;\n]+)",
+                     re.IGNORECASE)
+FILLER = re.compile(r"(\s+(lắm|ghê|quá|nhất|cực|nha|nhé|á|đó|nè|luôn|lắm luôn|so much|a lot|very much))+\s*$", re.IGNORECASE)
+
+
+def likes_from(text):
+    """Thứ người dùng tự nói là thích / ghét, không cần model: "mình thích ăn phở lắm" -> ["Thích ăn phở"],
+    "I hate mornings" -> ["Không thích mornings"]. Model cũng được dặn ghi, đây là lưới an toàn (trùng ý thì
+    remember tự bỏ)."""
+    out = []
+    if "?" in text or re.search(r"\b(gì|nào|không nhỉ|what|which)\b", text, re.IGNORECASE):  # đang hỏi, không phải kể
+        return out
+    for verb, thing in [*LIKE_VI.findall(text), *LIKE_EN.findall(text)]:
+        thing = FILLER.sub("", " ".join(thing.split())).strip()
+        if 2 <= len(thing) <= 60 and thing.lower() not in ("bạn", "you", "it", "nó", "cái đó", "that"):
+            neg = verb.lower() in ("không thích", "ghét", "don't like", "do not like", "hate")
+            out.append(("Không thích " if neg else "Thích ") + thing)
+    return out
 
 
 UNIT = r"(phút|ph|p|tiếng|giờ|h|minutes?|mins?|hours?|hrs?)\b"
