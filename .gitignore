@@ -9,7 +9,10 @@ cai_dat.json
 __pycache__/
 
 # Thư mục dữ liệu cá nhân (ký ức, nhật ký, cài đặt, vị trí, log lỗi)
+data/
 du_lieu/
+memory.txt
+position.txt
 
 # Script làm ảnh dùng một lần (chỉ để trên máy)
 tools/
