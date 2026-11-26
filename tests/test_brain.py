@@ -199,3 +199,17 @@ with tempfile.TemporaryDirectory() as d:
     assert "bao_cao.docx" in line or "docx" in line
     line, emote = taste([str(Path(d) / "khong_co.png")], fake_ask)  # file đã mất: không sập, nói câu nghẹn
     assert emote == "buon"
+
+# tự nói thích / ghét gì thì nhớ được cả khi không có model
+from claude_chan.brain import likes_from
+assert likes_from("mình thích ăn phở lắm") == ["Thích ăn phở"]
+assert likes_from("Tớ rất mê Genshin, nhưng tớ ghét dậy sớm nha") == ["Thích Genshin", "Không thích dậy sớm"]
+assert likes_from("I really love cats so much!") == ["Thích cats"] and likes_from("I don't like coffee") == ["Không thích coffee"]
+assert likes_from("bạn có nhớ mình thích gì không") == [] and likes_from("bạn có thích mèo không?") == [] and likes_from("Python là gì") == [] and likes_from("mình thích bạn") == []
+
+# xưng hô: Claude-chan luôn "mình" - "bạn", dù model lỡ viết tao / mày / tôi / tớ / cậu / em thấy
+from claude_chan.brain import fix_pronouns
+assert fix_pronouns("Mình thấy mày chăm chỉ quá!") == "Mình thấy bạn chăm chỉ quá!"
+assert fix_pronouns("Tôi là Claude-chan, tớ thích cậu lắm") == "Mình là Claude-chan, mình thích bạn lắm"
+assert fix_pronouns("em thấy bạn hơi căng thẳng, có em gái nào đâu") == "mình thấy bạn hơi căng thẳng, có em gái nào đâu"
+assert fix_pronouns("Học tiếng Anh với chị Google") == "Học tiếng Anh với chị Google"  # không đụng chữ khác

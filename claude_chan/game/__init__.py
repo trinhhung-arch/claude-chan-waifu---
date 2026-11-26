@@ -9,6 +9,7 @@ import time
 from ..character import food_image, overlay
 from ..core.config import CRAWL_EMOTE, DIZZY_EMOTE, SIZE
 from ..dialogue import pick
+from ..memory import favorite_food, load_memory
 
 GAME_SECONDS = 20
 POUNCE_RANGE = 230  # cách đồ ăn chừng này px thì thôi bò, nhảy chồm tới vồ
@@ -40,7 +41,9 @@ class FoodGame:
             return
         c.peek = c.perch = None
         c.stop_walk()
-        self.img = food_image(random.choice(FOODS))
+        fav = favorite_food(load_memory())
+        fav = fav if fav and random.random() < 0.7 else None  # thường là món bạn thích, thỉnh thoảng món khác cho đỡ chán
+        self.img = food_image(fav[1] if fav else random.choice(FOODS))
         self.lab = overlay(c.root)
         self.lab.config(image=self.img)
         win = self.lab.winfo_toplevel()
@@ -52,7 +55,7 @@ class FoodGame:
         self.pounced = 0.0  # lần nhảy chồm gần nhất
         self.x = None  # vị trí cửa sổ nhân vật (số thực) do game tự dời; None: đọc lại từ Tk (vừa bị kéo / quăng)
         self.t0 = self.t = time.perf_counter()
-        c.say(pick("game_start"), CRAWL_EMOTE)
+        c.say(pick("game_start_fav", food=fav[0].capitalize()) if fav else pick("game_start"), CRAWL_EMOTE)
         self.job = c.root.after(16, self._tick)
 
     def x0(self):

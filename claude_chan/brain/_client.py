@@ -2,7 +2,7 @@
 import time
 
 from ..core.config import CHAT_EMOTES, EMOTE_GUIDE, LANGUAGE, PERSONA, VISION_MODEL
-from ..memory import load_memory
+from ..memory import load_memory, relevant
 from ._parse import parse, parse_explaining, parse_facts, parse_focus, parse_reminder
 
 # Emote mới thêm mà chưa có mô tả thì model chỉ thấy tên
@@ -10,12 +10,12 @@ SYSTEM = PERSONA + "\n\nChọn emote khớp với cảm xúc của câu bạn n�
     f"- {e}: {EMOTE_GUIDE.get(e, e.replace('_', ' '))}" for e in CHAT_EMOTES)
 
 
-def chat(client, prompt, jpeg=None, history=(), learn=False, model=VISION_MODEL):
+def chat(client, prompt, jpeg=None, history=(), learn=False, model=VISION_MODEL, about=""):
     """Gọi model -> (lời nói, emote, điều mới cần nhớ, lời nhờ nhắc (phút, việc) hoặc None, số phút tập trung hoặc None).
     history: các lượt hỏi-đáp trước (chỉ chữ).  learn=True (chỉ khi trả lời câu người dùng tự gõ, không học từ ảnh
     màn hình): model liệt kê điều mới đáng nhớ, lời nhờ nhắc việc, và phiên làm việc N phút nếu người dùng nói tới.
     model: model trên Ollama; gpt-oss chỉ đọc chữ (đừng đưa jpeg) và được bảo nghĩ ít cho nhanh."""
-    memory = load_memory()
+    memory = relevant(load_memory(), about)  # about: câu người dùng vừa nói, để kèm điều nhớ có liên quan
     system = SYSTEM + ("\n\nNhững điều bạn nhớ về người dùng (dùng khi hợp lúc, đừng lần nào cũng nhắc):\n"
                        + "\n".join(f"- {m}" for m in memory) if memory else "")
     props = {"loi_noi": {"type": "string"}, "emote": {"type": "string", "enum": CHAT_EMOTES}}
@@ -25,10 +25,12 @@ def chat(client, prompt, jpeg=None, history=(), learn=False, model=VISION_MODEL)
         prompt += (' "giai_thich" = true nếu câu trả lời đang giải thích, định nghĩa, dạy hay chỉ cách làm một điều gì'
                    ' (kiến thức, code, từ ngữ, cách dùng...); chỉ chào hỏi, đùa, an ủi, nhận lời nhắc thì false.')
         props["ghi_nho"] = {"type": "array", "items": {"type": "string"}}
-        prompt += (' Trong "ghi_nho", liệt kê điều MỚI đáng nhớ lâu dài mà người dùng vừa tự nói về bản thân'
-                   " (tên, sở thích, dự án lâu dài, ngày quan trọng như sinh nhật...), mỗi điều một câu ngắn;"
-                   " không có gì mới thì để []. Không ghi việc tạm thời trong hôm nay (đang làm gì trong bao lâu,"
-                   " hẹn giờ, lời nhắc), không ghi mật khẩu, số tài khoản, mã OTP.")
+        prompt += (' Trong "ghi_nho", liệt kê điều MỚI đáng nhớ lâu dài mà người dùng vừa tự nói về bản thân, mỗi'
+                   ' điều một câu ngắn. QUAN TRỌNG NHẤT: thứ họ thích / không thích (món ăn, đồ uống, game, nhạc, ca sĩ,'
+                   ' phim, anime, môn học, màu, con vật, hoạt động...) thì LUÔN ghi, dạng "Thích ..." / "Không thích ...".'
+                   " Ngoài ra: tên, ngày quan trọng như sinh nhật, trường / nghề nghiệp. Không có gì mới thì để []. Không ghi việc tạm thời trong hôm nay (đang làm gì trong bao lâu,"
+                   " hẹn giờ, lời nhắc, câu họ vừa hỏi, thứ họ đang đọc / tìm hiểu / sửa), điều đã có trong danh sách bạn nhớ"
+                   " (dù nói khác chữ) thì đừng ghi lại; không ghi mật khẩu, số tài khoản, mã OTP.")
         props["nhac_phut"], props["nhac_viec"] = {"type": "integer"}, {"type": "string"}
         props["tap_trung_phut"] = {"type": "integer"}
         prompt += (f" Bây giờ là {time.strftime('%H:%M')}. Nếu người dùng nói sắp làm việc / học / code / tập trung"

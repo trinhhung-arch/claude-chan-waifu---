@@ -262,7 +262,7 @@ def open_window(root, on_saved):
     auto = tk.BooleanVar(value=autostart_on())
     _tick(start, auto, tr("  Tự chạy Claude-chan khi bật máy"), ticks).pack(anchor="w", pady=6)
     ttk.Label(start, text=tr("Cài đặt được lưu ở {file}, trong thư mục {folder}").format(file=SETTINGS_FILE.name,
-                                                                                         folder=ROOT.name),
+                                                                                         folder=SETTINGS_FILE.parent.name),
               style="Note.TLabel").pack(anchor="w", pady=(10, 0))
 
     load_models()

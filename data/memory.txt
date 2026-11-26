@@ -1,0 +1,23 @@
+# Những điều nhân vật nhớ về bạn. Sửa hoặc xoá thoải mái, mỗi dòng một điều.
+Đang code cần tập trung trong 20 phút
+Tên của người dùng là Hùng
+Bạn tên là Hùng
+Hát 'Letter From Ajax' nghe nhạc khi làm việc
+Hùng thích nghe nhạc khi làm việc
+Hùng vừa nhắc đến việc đang code chăm chỉ và giải quyết lỗi trong dự án.
+Hùng vừa hỏi về local model.
+Hùng đang tìm hiểu thêm về kiến thức liên quan đến mô hình máy học.
+Hùng rất chăm chỉ trong việc học hỏi và tìm hiểu công nghệ mới.
+Bạn tên là Hùng và thích nghe nhạc khi làm việc.
+Hùng vừa hỏi 'local model là gì'.
+Hùng đang tìm hiểu về local model trong dự án liên quan đến Ollama.
+Hùng đang đọc tài liệu và giải quyết vấn đề liên quan đến local model.
+Hùng nhắc đến việc sử dụng Ollama và gặp vấn đề khi kết nối client với server.
+Hùng vừa hỏi về local model trong dự án liên quan đến Ollama.
+Hùng đang tìm hiểu về local model cho dự án Ollama.
+Tên: Hùng
+Sở thích: nghe nhạc khi làm việc
+Dự án: Ollama local model
+Tên của bạn là Hùng
+Bạn thích nghe nhạc khi làm việc.
+Bạn đang tìm hiểu về local model cho dự án Ollama.
